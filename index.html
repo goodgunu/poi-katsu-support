@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ポイ活サポート</title>
+<style>
+:root { --bg:#fff8f0; --card:#ffffff; --ink:#33302b; --sub:#8a8175; --accent:#f59e0b; --accent2:#ef4444; --line:#f0e3d3; --chip:#fdf0dd;}
+* { box-sizing:border-box;}
+body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif; background:var(--bg); color:var(--ink);}
+header { padding:18px 16px 8px; max-width:860px; margin:0 auto;}
+h1 { font-size:22px; margin:0 0 4px;}
+.meta { color:var(--sub); font-size:12px;}
+main { max-width:860px; margin:0 auto; padding:0 16px 120px;}
+.hero { background:linear-gradient(135deg,#fbbf24,#f59e0b); color:#fff; border-radius:14px; padding:14px 16px; margin:12px 0;}
+.hero.k { font-size:12px; opacity:.9;}
+.hero.t { font-size:17px; font-weight:700; margin:2px 0;}
+.hero.r { font-size:13px;}
+.warn { background:#fff1f2; border:1px solid #fecdd3; color:#9f1239; border-radius:12px; padding:10px 14px; font-size:13px; margin:10px 0;}
+.tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 6px;}
+.tab { border:1px solid var(--line); background:var(--card); border-radius:999px; padding:6px 12px; font-size:13px; cursor:pointer;}
+.tab.on { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:700;}
+.tools { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:8px 0 12px; font-size:13px;}
+select, input[type="text"], input[type="number"], input[type="date"], input[type="url"] { padding:7px 9px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff;}
+button { cursor:pointer; border:1px solid var(--line); background:var(--card); border-radius:8px; padding:6px 10px; font-size:13px;}
+button.primary { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:700;}
+.card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 14px; margin:10px 0; display:flex; gap:10px;}
+.card.done { opacity:.62;}
+.card.body { flex:1; min-width:0;}
+.ttl { font-weight:700; font-size:15px;}
+.prov { color:var(--sub); font-size:12px; margin-top:1px;}
+.rew { color:#b45309; font-weight:700; font-size:13px; margin-top:4px;}
+.desc { font-size:13px; margin-top:4px; line-height:1.55;}
+.cond { font-size:12px; color:var(--sub); margin-top:3px;}
+.tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; font-size:11px;}
+.tag { background:var(--chip); border-radius:999px; padding:2px 8px;}
+.tag.red { background:#ffe4e6; color:#9f1239;}
+.acts { display:flex; gap:6px; flex-wrap:wrap; margin-top:9px;}
+.acts button.on { background:var(--accent); color:#fff; border-color:var(--accent);}
+.src { font-size:11px; color:var(--sub); margin-top:6px;}
+.src a { color:#2563eb;}
+.chk { width:22px; height:22px; margin-top:2px; flex:none; accent-color:var(--accent);}
+#bar { position:fixed; left:0; right:0; bottom:0; background:#fff; border-top:1px solid var(--line); padding:10px 16px; display:none; box-shadow:0 -4px 16px rgba(0,0,0,.06);}
+#bar.in { max-width:860px; margin:0 auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap; font-size:13px;}
+dialog { border:none; border-radius:14px; max-width:560px; width:92vw; padding:18px;}
+dialog::backdrop { background:rgba(0,0,0,.35);}
+.prow { display:flex; gap:8px; align-items:center; padding:8px 0; border-bottom:1px solid var(--line); font-size:13px;}
+.prow.n { width:22px; color:var(--sub);}
+.prow.g { flex:1;}
+.panel { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 14px; margin:12px 0;}
+.panel h2 { font-size:15px; margin:0 0 8px;}
+.tot { display:flex; gap:16px; font-size:13px;}
+.tot b { font-size:17px;}
+form.add { display:grid; gap:8px;}
+.note { font-size:12px; color:var(--sub); line-height:1.6;}
+</style>
+</head>
+<body>
+<header>
+<h1>🎁 ポイ活サポート</h1>
+<div class="meta" id="meta"></div>
+</header>
+<main>
+<div id="hero"></div>
+<div id="warn"></div>
+<div class="tabs" id="tabs"></div>
+<div class="tools">
+<label>並び替え
+<select id="sort">
+<option value="deadline">締切が近い順</option>
+<option value="reward">お得度が大きい順</option>
+</select>
+</label>
+<label><input type="checkbox" id="onlyOpen"> まだのものだけ</label>
+<label><input type="checkbox" id="onlyToday"> 今日締切のみ</label>
+<button id="selectVisible">表示中をすべて選択</button>
+</div>
+<div id="list"></div>
+
+<div class="panel">
+<h2>⭐ ポイント記録</h2>
+<div class="tot"><div>累計 <b id="totAll">0</b> pt</div><div>今月 <b id="totMonth">0</b> pt</div></div>
+<form class="add" id="logForm" style="margin-top:10px">
+<input type="text" id="logService" placeholder="サービス名（例: dポイント）" required>
+<input type="number" id="logPoints" placeholder="ポイント数" required>
+<button class="primary" type="submit">記録する</button>
+</form>
+<div id="logs" style="margin-top:8px"></div>
+</div>
+
+<div class="panel">
+<h2>➕ 自分で見つけた案件を追加</h2>
+<form class="add" id="dealForm">
+<input type="text" id="dTitle" placeholder="タイトル" required>
+<input type="text" id="dProvider" placeholder="提供元（例: 楽天）">
+<input type="text" id="dReward" placeholder="特典（例: 1,000ポイント）">
+<input type="date" id="dDeadline">
+<input type="url" id="dUrl" placeholder="出典URL https://...">
+<button class="primary" type="submit">追加する</button>
+</form>
+</div>
+
+<p class="note">このページは Muse のスペース「ポイ活サポート」から書き出した公開版です。案件データは書き出し時点のもので、自動更新はされません。チェックや記録はこのブラウザの中に保存されます。応募は各公式ページで行ってください。</p>
+</main>
+
+<div id="bar"><div class="in">
+<b id="barCount">0件選択中</b>
+<button class="primary" id="openPanel">まとめて応募する</button>
+<button data-bulk="done">まとめて済みにする</button>
+<button data-bulk="interested">まとめて気になる</button>
+<button data-bulk="bookmark">まとめて保存</button>
+<button id="clearSel">選択を解除</button>
+</div></div>
+
+<dialog id="panel">
+<h3 style="margin-top:0">まとめて応募</h3>
+<p class="note">選んだ案件の公式ページを番号順に開きます。応募の送信は各サイトで行ってください。<br>進捗: <b id="pProg">0 / 0</b> 件開きました</p>
+<div id="pList"></div>
+<div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap">
+<button class="primary" id="pNext">次の応募ページを開く</button>
+<button data-bulk="done">まとめて済みにする</button>
+<button id="pClose">閉じる</button>
+</div>
+</dialog>
+
+<script>
+const DEALS = [
+{"id":23,"category":"point","provider":"オクトパスエナジー","title":"オクトパスエナジー新規契約キャンペーン","rewardText":"新規契約でもれなく8,000ポイント＋電気代6,000円割引、合計14,000円相当お得","rewardYen":14000,"deadline":null,"description":"オクトパスエナジーの新規契約で8,000ポイントと電気代6,000円割引が得られ、合計14,000円相当お得と記載されている案件。","conditions":"新規契約でもれなく全員が対象。","sourceName":"poikan.com","sourceUrl":"https://poikan.com/q/ぽい/p/6","isFree":false},
+{"id":7,"category":"point","provider":"ポイントスタジアム","title":"Freecash：ゲームで遊んでポイ活","rewardText":"8,286円","rewardYen":8286,"deadline":null,"description":"Freecashでゲームを遊んで参加できる、ポイントスタジアム掲載のポイ活案件。","conditions":"Androidでゲームをプレイすることが対象。","sourceName":"poikan.com","sourceUrl":"https://poikan.com/q/ぽい/p/6","isFree":true},
+{"id":8,"category":"point","provider":"GMOポイ活","title":"楽天ポイントギフトカード For Business","rewardText":"2,800円","rewardYen":2800,"deadline":null,"description":"楽天ポイントギフトカード For Businessの資料ダウンロードとアポイント実施で2,800円が得られる、GMOポイ活掲載の案件。","conditions":"資料ダウンロード後にアポイントを実施すること。","sourceName":"poikan.com","sourceUrl":"https://poikan.com/q/%E3%82%AE%E3%83%95%E3%83%88%E3%82%AB%E3%83%BC%E3%83%AF%E3%83%BC%E3%83%89","isFree":true},
+{"id":20,"category":"point","provider":"ZOZOTOWN","title":"ZOZOTOWNの新規登録で2,330円","rewardText":"もれなく2,330円","rewardYen":2330,"deadline":null,"description":"ZOZOTOWNの新規登録でもれなく2,330円が得られるポイ活案件。","conditions":"新規登録が対象。","sourceName":"poikan.com","sourceUrl":"https://poikan.com/recommend","isFree":true},
+{"id":21,"category":"point","provider":"グレイル","title":"グレイル新規登録で600円","rewardText":"もれなく600円","rewardYen":600,"deadline":null,"description":"グレイルの新規登録でもれなく600円が得られるポイ活案件。","conditions":"新規登録が対象。","sourceName":"poikan.com","sourceUrl":"https://poikan.com/recommend","isFree":true},
+{"id":9,"category":"point","provider":"アメフリ","title":"AOYAMA GIFT SALON｜ギフトカード専門オンラインストア","rewardText":"4%","rewardYen":null,"deadline":null,"description":"ギフトカード専門オンラインストアAOYAMA GIFT SALONが、アメフリ経由で4％還元と記載されている案件。","conditions":null,"sourceName":"poikan.com","sourceUrl":"https://poikan.com/q/%E3%82%AE%E3%83%95%E3%83%88%E3%82%AB%E3%83%BC%E3%83%89","isFree":false},
+{"id":10,"category":"point","provider":"アメフリ","title":"SNSやYOUTUBEで「明るい」と話題沸騰！車のLED、HIDライト専門店『HID屋』","rewardText":"17%","rewardYen":null,"deadline":null,"description":"ポイカンのポイントサイト比較に2026年11月9日確認として掲載された、アメフリ経由の車用LED・HIDライト専門店『HID屋』の案件。","conditions":null,"sourceName":"poikan.com","sourceUrl":"https://poikan.com/q/%E3%82%89%E3%81%84%E3%81%A8","isFree":false},
+{"id":11,"category":"point","provider":"アメフリ","title":"いつも全国最安値に挑戦中！激安コンタクト販売","rewardText":"6%","rewardYen":null,"deadline":null,"description":"アットレンズの激安コンタクト販売が、アメフリ経由で6％還元と記載されている案件。","conditions":null,"sourceName":"poikan.com","sourceUrl":"https://poikan.com/q/%E3%81%84%E3%81%A4%E3%82%82","isFree":false},
+{"id":22,"category":"point","provider":"Amazon Music","title":"Amazon Music無料再生で100万ポイント山分け！","rewardText":"100万ポイント山分け","rewardYen":null,"deadline":null,"description":"Amazon Musicの無料再生で100万ポイント山分けに参加できるポイ活案件。","conditions":"Amazon Musicの無料再生が対象と記載されている。","sourceName":"poikan.com","sourceUrl":"https://poikan.com/recommend","isFree":true},
+{"id":4,"category":"free","provider":"サントリー","title":"オールフリー無料引換クーポンキャンペーン","rewardText":"オールフリー350ml缶1本の無料引換クーポン（15万名）","rewardYen":null,"deadline":"2026-11-09","description":"サントリーのオールフリー350ml缶1本と交換できる無料引換クーポンが抽選で当たるキャンペーン。応募はLINEから行う。","conditions":"LINEから応募。アンケート回答と引換を希望するコンビニの選択が必要。クーポン引換期限は2026年11月16日23:59、当選後のコンビニ変更不可","sourceName":"kenshowtime.com","sourceUrl":"https://kenshowtime.com/sanallfcp/","isFree":true},
+{"id":17,"category":"free","provider":"サントリー","title":"オールフリー無料引換クーポンが15万名に当たるキャンペーン","rewardText":"オールフリー350ml缶1本の無料引換クーポン 15万名","rewardYen":null,"deadline":"2026-11-09","description":"サントリーのオールフリー350ml缶1本と交換できる無料引換クーポンが抽選で当たるキャンペーン。","conditions":"LINEから応募。アンケートに回答し、引換えを希望するコンビニを選ぶ。クーポン引換期限は2026年11月16日23:59。","sourceName":"kenshowtime.com","sourceUrl":"https://kenshowtime.com/sanallfcp/","isFree":true},
+{"id":3,"category":"free","provider":"アサヒビール","title":"クリアアサヒ＜生＞無料クーポンが当たるキャンペーン","rewardText":"クリアアサヒ＜生＞350ml缶1本の無料引換クーポン（合計50万名）","rewardYen":null,"deadline":"2026-11-10","description":"アサヒビールのクリアアサヒ＜生＞350ml缶1本と交換できるコンビニ無料引換クーポンが当たるキャンペーン。LINE応募40万名・X応募10万名が対象。","conditions":"LINEまたはXから応募。1日1回、期間中当選するまで毎日応募可能。クーポン引換期限は2026年11月17日23:59","sourceName":"kenshowtime.com","sourceUrl":"https://kenshowtime.com/kuriasalxcp/","isFree":true},
+{"id":16,"category":"free","provider":"アサヒビール","title":"クリアアサヒ＜生＞無料クーポンが50万名に当たるキャンペーン","rewardText":"クリアアサヒ＜生＞350ml缶1本の無料引換クーポン 合計50万名","rewardYen":null,"deadline":"2026-11-10","description":"クリアアサヒ＜生＞350ml缶1本と交換できるコンビニ無料引換クーポンが当たるキャンペーン。LINE応募40万名、X応募10万名。","conditions":"LINEまたはXから応募。1日1回、期間中当選するまで毎日応募可能。クーポン引換期限は2026年11月17日23:59。","sourceName":"kenshowtime.com","sourceUrl":"https://kenshowtime.com/kuriasalxcp/","isFree":true},
+{"id":19,"category":"point","provider":"エアウォレット","title":"エアウォレット新規登録等で最大6,800円","rewardText":"最大6,800円","rewardYen":6800,"deadline":"2026-11-23","description":"エアウォレットの新規登録等で最大6,800円が得られるポイ活案件。","conditions":"新規登録等が対象。","sourceName":"poikan.com","sourceUrl":"https://poikan.com/recommend","isFree":true},
+{"id":6,"category":"cashback","provider":"三井住友カード","title":"最大1,000％還元！Vクーポンデビューキャンペーン！","rewardText":"抽選で1等50名に利用合計額の1,000％（上限50,000ポイント）、2等2,000名に10％（上限500ポイント）","rewardYen":null,"deadline":"2026-11-30","description":"三井住友カードのキャンペーン。Vクーポンを初めて利用した買い物が対象で、抽選で利用合計額に応じたVポイントが還元される。","conditions":"エントリー要。対象カードでVクーポンを初めて利用して買い物すること。エントリー期間は2026年10月30日～11月30日、利用期間は2026年11月1日～11月30日","sourceName":"www.smbc-card.com","sourceUrl":"https://www.smbc-card.com/mem/cardinfo/26/cardinfo7224919.jsp","isFree":false},
+{"id":15,"category":"cashback","provider":"三井住友カード","title":"最大1,000％還元！Vクーポンデビューキャンペーン！","rewardText":"抽選で最大1,000％還元、上限50,000ポイント（1等50名）","rewardYen":null,"deadline":"2026-11-30","description":"Vクーポンの初利用で抽選に参加できるキャンペーン。1等50名、2等2,000名の合計2,050名が対象。","conditions":"対象カードでエントリーし、期間中にVクーポンを初めて利用して買い物をすること。Vクーポンを利用した対象カードでの買い物が必要。","sourceName":"mitsuketoku.com","sourceUrl":"https://mitsuketoku.com/deals/smbc-v-coupon-debut-campaign-202611/","isFree":false},
+{"id":18,"category":"cashback","provider":"teppay","title":"teppay500円以上でもれなく20%還元！","rewardText":"もれなく20%還元","rewardYen":null,"deadline":"2026-12-25","description":"teppayで500円以上の利用でもれなく20％還元されるキャンペーン。","conditions":"500円以上の利用が対象。","sourceName":"poikan.com","sourceUrl":"https://poikan.com/recommend","isFree":false},
+{"id":1,"category":"kensho","provider":"ジャパネットたかた","title":"ジャパネット40周年利益還元祭 純金Jくんプレゼント","rewardText":"約500万円相当の純金Jくん（抽選で1名）","rewardYen":5000000,"deadline":"2026-12-27","description":"ジャパネットたかた創立40周年を記念した利益還元祭の懸賞。商品を買わなくてもLINE・SNSから応募できる。","conditions":"購入不要。LINE・X・Instagramから応募でき、1人最大3口まで応募可能","sourceName":"choyakudatu.com","sourceUrl":"https://choyakudatu.com/genkin/japanetkangensai/","isFree":true},
+{"id":12,"category":"kensho","provider":"ジャパネット","title":"ジャパネット40周年利益還元祭 純金Jくんプレゼント","rewardText":"約500万円相当の純金Jくんが抽選で1名","rewardYen":5000000,"deadline":"2026-12-27","description":"ジャパネット40周年利益還元祭の懸賞。約500万円相当の純金Jくん（純金200g）が抽選で1名に当たる。","conditions":"商品購入不要。X・Instagram・LINEから応募でき、1人最大3口まで応募できる。","sourceName":"kenshowtime.com","sourceUrl":"https://kenshowtime.com/japarieki/","isFree":true},
+{"id":2,"category":"kensho","provider":"ジャパネット","title":"ジャパネット40周年利益還元祭 購入者向けキャンペーン","rewardText":"ギフトカード5,000円分＋ゆこゆこクーポン5,000円分 合計1万円分（5,000名）","rewardYen":10000,"deadline":"2026-12-27","description":"ジャパネット40周年利益還元祭の購入者向けキャンペーン。条件を満たす商品の購入者が対象となる。","conditions":"5,000円以上（税込・送料別）の条件を満たす商品を購入すると自動で応募受付","sourceName":"kenshowtime.com","sourceUrl":"https://kenshowtime.com/japarieki/","isFree":false},
+{"id":13,"category":"kensho","provider":"ジャパネット","title":"ジャパネット40周年利益還元祭 購入者向け1万円分プレゼント","rewardText":"ギフトカード5,000円分＋ゆこゆこクーポン5,000円分 合計1万円分が5,000名","rewardYen":10000,"deadline":"2026-12-27","description":"ジャパネット40周年利益還元祭の購入者向けキャンペーン。ギフトカードとクーポンの合計1万円分が5,000名に当たる。","conditions":"5,000円以上（税込・送料別）の商品を購入すると自動で応募受付される購入者向けキャンペーン。","sourceName":"kenshowtime.com","sourceUrl":"https://kenshowtime.com/japarieki/","isFree":false},
+{"id":5,"category":"cashback","provider":"ブラザー販売","title":"年末Wバックキャンペーン","rewardText":"現金最大4,000円＋トク刷るポイント最大4,000円相当（合計最大8,000円相当）","rewardYen":8000,"deadline":"2027-01-14","description":"対象プリンター・複合機の購入者向けに、現金キャッシュバックとトク刷るポイントを還元するキャンペーン。","conditions":"対象インクジェットプリンター・複合機の購入と所定の申込みが必要。一部機種では対象インクカートリッジの購入・申込みで最大1,500円相当をさらに追加付与","sourceName":"prtimes.jp","sourceUrl":"https://prtimes.jp/main/html/rd/p/000000903.000011621.html","isFree":false},
+{"id":14,"category":"cashback","provider":"ブラザー販売","title":"ブラザー 年末Wバックキャンペーン","rewardText":"現金とポイント合計最大8,000円相当還元","rewardYen":8000,"deadline":"2027-01-14","description":"対象プリンター・複合機の購入で、最大4,000円のキャッシュバックと最大4,000円相当のトク刷るポイントを付与するキャンペーン。","conditions":"対象のインクジェットプリンター・複合機の購入と所定の申し込みが必要。ブラザーオンライン1アカウントにつき1製品限り。一部機種では対象インクの購入で追加付与あり。","sourceName":"prtimes.jp","sourceUrl":"https://prtimes.jp/main/html/rd/p/000000903.000011621.html","isFree":false}
+];
+const EXPORTED_AT = "2026-11-09";
+const CATS = [["all","すべて"],["point","ポイ活"],["free","無料クーポン"],["kensho","懸賞"],["cashback","還元"]];
+const CAT_L = {point:"ポイ活", free:"無料クーポン", kensho:"懸賞", cashback:"還元"};
+const $ = s => document.querySelector(s);
+const store = {
+get(k, d){ try { return JSON.parse(localStorage.getItem("poi_"+k))?? d;} catch(e){ return d;}},
+set(k, v){ localStorage.setItem("poi_"+k, JSON.stringify(v));}
+};
+let state = store.get("state", {}); // id -> {status, bookmark}
+let logs = store.get("logs", []); // {service, points, date}
+let mine = store.get("mine", []); // user-added deals
+let sel = new Set(); let opened = new Set(); let curCat = "all";
+const todayStr = () => { const d = new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};
+const daysLeft = dl => dl? Math.round((new Date(dl+"T23:59:59") - new Date()) / 86400000): null;
+const allDeals = () => [...mine,...DEALS];
+const st = id => state[id] || {status:"none", bookmark:false};
+function saveState(){ store.set("state", state);}
+function esc(s){ return (s??"").toString().replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+
+function visible(){
+let ds = allDeals().filter(d => curCat==="all" || d.category===curCat);
+if ($("#onlyOpen").checked) ds = ds.filter(d => st(d.id).status!== "done" && st(d.id).status!== "skipped");
+if ($("#onlyToday").checked) ds = ds.filter(d => d.deadline === todayStr());
+const s = $("#sort").value;
+ds.sort((a,b) => s==="reward"? (b.rewardYen||0)-(a.rewardYen||0): ((a.deadline||"9999") < (b.deadline||"9999")? -1: 1));
+return ds;
+}
+function render(){
+$("#meta").textContent = `案件 ${allDeals().length}件 ・ データは ${EXPORTED_AT} 時点の書き出しです`;
+// tabs
+$("#tabs").innerHTML = CATS.map(([k,l]) => {
+const n = k==="all"? allDeals().length: allDeals().filter(d=>d.category===k).length;
+return `<button class="tab ${curCat===k?"on":""}" data-cat="${k}">${l} ${n}</button>`;
+}).join("");
+document.querySelectorAll("[data-cat]").forEach(b => b.onclick = () => { curCat = b.dataset.cat; render();});
+// hero: today's top per earliest big reward open deal
+const open = allDeals().filter(d => st(d.id).status!=="done");
+const pick = [...open].sort((a,b)=>((b.rewardYen||0)-(a.rewardYen||0)))[0];
+$("#hero").innerHTML = pick? `<div class="hero"><div class="k">今日のイチオシ</div><div class="t">${esc(pick.title)}</div><div class="r">${esc(pick.rewardText)}${pick.deadline?` ・ 締切 ${pick.deadline}`:""}</div></div>`: "";
+const soon = open.filter(d => { const n = daysLeft(d.deadline); return n!==null && n<=3 && n>=0;});
+$("#warn").innerHTML = soon.length? `<div class="warn">⏰ まもなく終了（あと3日以内）が ${soon.length} 件あります：${soon.map(d=>esc(d.provider)).slice(0,4).join("、")} など</div>`: "";
+// list
+$("#list").innerHTML = visible().map(d => {
+const s = st(d.id); const n = daysLeft(d.deadline);
+const dl = d.deadline? `<span class="tag ${n!==null&&n<=3?"red":""}">締切 ${d.deadline}${n!==null?`（あと${n}日）`:""}</span>`: "";
+return `<div class="card ${s.status==="done"?"done":""}">
+<input type="checkbox" class="chk" data-sel="${d.id}" ${sel.has(d.id)?"checked":""} aria-label="まとめて応募に入れる">
+<div class="body">
+<div class="ttl">${esc(d.title)}</div>
+<div class="prov">${esc(d.provider||"")} ・ ${CAT_L[d.category]||""}</div>
+<div class="rew">${esc(d.rewardText||"")}</div>
+<div class="desc">${esc(d.description||"")}</div>
+${d.conditions?`<div class="cond">条件：${esc(d.conditions)}</div>`:""}
+<div class="tags">${dl}${d.isFree?'<span class="tag">無料で参加可</span>':""}${s.bookmark?'<span class="tag">保存済み</span>':""}</div>
+<div class="acts">
+<button data-act="interested" data-id="${d.id}" class="${s.status==="interested"?"on":""}">気になる</button>
+<button data-act="done" data-id="${d.id}" class="${s.status==="done"?"on":""}">済み</button>
+<button data-act="skipped" data-id="${d.id}" class="${s.status==="skipped"?"on":""}">見送り</button>
+<button data-act="bookmark" data-id="${d.id}" class="${s.bookmark?"on":""}">保存</button>
+<a href="${esc(d.sourceUrl)}" target="_blank" rel="noopener"><button type="button">詳細を見る</button></a>
+</div>
+<div class="src">出典：<a href="${esc(d.sourceUrl)}" target="_blank" rel="noopener">${esc(d.sourceName||d.sourceUrl)}</a></div>
+</div></div>`;
+}).join("") || '<p class="note">表示できる案件がありません。</p>';
+document.querySelectorAll("[data-sel]").forEach(c => c.onchange = () => { c.checked? sel.add(+c.dataset.sel): sel.delete(+c.dataset.sel); renderBar();});
+document.querySelectorAll("[data-act]").forEach(b => b.onclick = () => {
+const id = +b.dataset.id; const cur = st(id);
+if (b.dataset.act === "bookmark") cur.bookmark =!cur.bookmark;
+else cur.status = cur.status === b.dataset.act? "none": b.dataset.act;
+state[id] = cur; saveState(); render();
+});
+// logs
+const ym = todayStr().slice(0,7);
+const sum = f => logs.filter(f).reduce((a,l)=>a + (+l.points||0), 0);
+$("#totAll").textContent = sum(()=>true).toLocaleString();
+$("#totMonth").textContent = sum(l=>l.date.startsWith(ym)).toLocaleString();
+$("#logs").innerHTML = logs.slice(0,10).map(l => `<div class="prow"><div class="g">${esc(l.service)}</div><div>+${(+l.points).toLocaleString()}pt</div><div class="n">${esc(l.date)}</div></div>`).join("");
+renderBar();
+}
+function renderBar(){
+$("#bar").style.display = sel.size? "block": "none";
+$("#barCount").textContent = `${sel.size}件選択中`;
+}
+function bulk(kind){
+sel.forEach(id => { const cur = st(id); if (kind==="bookmark") cur.bookmark = true; else cur.status = kind; state[id] = cur;});
+saveState(); render(); renderPanel();
+}
+document.querySelectorAll("[data-bulk]").forEach(b => b.onclick = () => bulk(b.dataset.bulk));
+$("#clearSel").onclick = () => { sel.clear(); opened.clear(); render();};
+$("#selectVisible").onclick = () => { visible().forEach(d => sel.add(d.id)); render();};
+$("#sort").onchange = render; $("#onlyOpen").onchange = render; $("#onlyToday").onchange = render;
+function renderPanel(){
+const ds = allDeals().filter(d => sel.has(d.id));
+$("#pProg").textContent = `${ds.filter(d=>opened.has(d.id)).length} / ${ds.length}`;
+$("#pList").innerHTML = ds.map((d,i) => `<div class="prow"><div class="n">${i+1}</div><div class="g">${esc(d.title)}${opened.has(d.id)?" ✅開いた":""}</div><a href="${esc(d.sourceUrl)}" target="_blank" rel="noopener" data-open="${d.id}">応募ページへ</a></div>`).join("");
+document.querySelectorAll("[data-open]").forEach(a => a.onclick = () => { opened.add(+a.dataset.open); setTimeout(renderPanel, 300);});
+}
+$("#openPanel").onclick = () => { renderPanel(); $("#panel").showModal();};
+$("#pClose").onclick = () => $("#panel").close();
+$("#pNext").onclick = () => {
+const ds = allDeals().filter(d => sel.has(d.id));
+const next = ds.find(d =>!opened.has(d.id));
+if (next) { opened.add(next.id); window.open(next.sourceUrl, "_blank"); renderPanel();}
+else alert("全部開きました。おつかれさまです。");
+};
+$("#logForm").onsubmit = e => { e.preventDefault(); logs.unshift({service: $("#logService").value, points: +$("#logPoints").value, date: todayStr()}); store.set("logs", logs); e.target.reset(); render();};
+$("#dealForm").onsubmit = e => { e.preventDefault(); mine.unshift({id: Date.now(), category:"point", provider: $("#dProvider").value, title: $("#dTitle").value, rewardText: $("#dReward").value, rewardYen: null, deadline: $("#dDeadline").value || null, description: "", conditions: null, sourceName: "自分で追加", sourceUrl: $("#dUrl").value || "#", isFree: false}); store.set("mine", mine); e.target.reset(); render();};
+render();
+</script>
+</body>
+</html>
